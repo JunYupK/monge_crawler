@@ -1,4 +1,3 @@
-import pytest
 from datetime import date
 from monge_crawler.cli import build_parser, parse_date
 

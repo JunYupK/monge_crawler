@@ -73,10 +73,29 @@ def main(argv=None) -> int:
         return client.get(post_url).text
 
     out_dir = cfg.get("output_dir", "output")
-    posts, errors = fetch_posts(cfg, start, end, list_fn=list_fn,
-                                article_fn=article_fn, image_client=client, out_dir=out_dir)
     out_path = Path(out_dir) / f"monge_{args.date_from}_{args.date_to}.xlsx"
-    export(posts, errors, out_path)
+
+    posts, errors = [], []
+    try:
+        posts, errors = fetch_posts(cfg, start, end, list_fn=list_fn,
+                                    article_fn=article_fn, image_client=client, out_dir=out_dir)
+    except Exception:
+        log.exception("수집 중 오류 발생")
+        if posts or errors:
+            try:
+                export(posts, errors, out_path)
+                log.info("부분 결과 엑셀 저장: %s", out_path)
+            except Exception:
+                log.exception("부분 결과 엑셀 저장 실패")
+        print(f"오류가 발생했습니다. 로그를 확인하세요: {log_path}")
+        return 1
+
+    try:
+        export(posts, errors, out_path)
+    except Exception:
+        log.exception("엑셀 저장 중 오류 발생 (수집 %d건 / 실패 %d건)", len(posts), len(errors))
+        print(f"오류가 발생했습니다. 로그를 확인하세요: {log_path}")
+        return 1
 
     log.info("완료: 성공 %d건 / 실패 %d건 / 엑셀 %s / 로그 %s",
              len(posts), len(errors), out_path, log_path)

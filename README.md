@@ -102,7 +102,12 @@ PYTHONPATH=src python -m monge_crawler.cli run --from 2025-09-12 --to 2025-09-16
 
 ```bash
 # 매일 오전 9시에 실행 (결과는 메일로 수신)
+
+# Linux (GNU date)
 0 9 * * * cd /home/user/monge_crawler && PYTHONPATH=src python -m monge_crawler.cli run --from $(date -d yesterday +\%Y-\%m-\%d) --to $(date +\%Y-\%m-\%d) >> logs/cron.log 2>&1
+
+# macOS (BSD date)
+0 9 * * * cd /home/user/monge_crawler && PYTHONPATH=src python -m monge_crawler.cli run --from $(date -v-1d +\%Y-\%m-\%d) --to $(date +\%Y-\%m-\%d) >> logs/cron.log 2>&1
 ```
 
 **크론 설정 팁:**

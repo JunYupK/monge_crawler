@@ -85,3 +85,20 @@ def test_fetch_does_not_stop_at_all_notice_page(tmp_path):
     ids = [p.post_id for p in posts]
     # Must contain the in-period post from page 2, not stopped at all-notice page 1
     assert ids == ["2003"], f"Expected ['2003'] but got {ids}"
+
+
+def test_fetch_handles_list_stage_failure(tmp_path):
+    """list_fn raising should not crash fetch_posts; it should record a FetchError
+    with stage=='list' and stop paging, returning whatever was collected so far."""
+    def _list_page_raises(page):
+        raise ValueError("bad JSON / wrong keys")
+
+    cfg = {"board_url": "https://cafe.naver.com/f-e/cafes/30867744/menus/43",
+           "page_size": 15, "request_delay_sec": 0}
+    posts, errors = fetch_posts(cfg, date(2025, 9, 12), date(2025, 9, 16),
+                                list_fn=_list_page_raises, article_fn=_article,
+                                image_client=_Client(), out_dir=tmp_path)
+    assert posts == []
+    assert len(errors) == 1
+    assert errors[0].stage == "list"
+    assert "bad JSON / wrong keys" in errors[0].reason

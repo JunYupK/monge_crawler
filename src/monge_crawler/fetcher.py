@@ -14,8 +14,12 @@ def fetch_posts(config, start: date, end: date, *, list_fn, article_fn,
     errors = []
     page = 1
     while True:
-        data = list_fn(page)
-        page_posts = parse_article_list(data, board_url)
+        try:
+            data = list_fn(page)
+            page_posts = parse_article_list(data, board_url)
+        except Exception as exc:  # noqa: BLE001
+            errors.append(FetchError("", board_url, "list", str(exc), datetime.now()))
+            break
         if not page_posts:
             break
         # 최신순 전제: 이 페이지 글이 전부 하한 이전이면 이후 페이지도 그러하므로 중단

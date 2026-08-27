@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, timedelta
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
+from monge_crawler.models import Post
 
 KST = timezone(timedelta(hours=9))
 
@@ -11,8 +12,7 @@ def _cafe_id(board_url: str) -> str:
     return parts[parts.index("cafes") + 1]
 
 
-def parse_article_list(data: dict, board_url: str) -> list["object"]:
-    from monge_crawler.models import Post
+def parse_article_list(data: dict, board_url: str) -> list[Post]:
     cafe_id = _cafe_id(board_url)
     articles = data["message"]["result"]["articleList"]
     posts: list[Post] = []
