@@ -1,6 +1,7 @@
-from datetime import date
+from datetime import date, datetime
 from monge_crawler.dateutil import period_bounds
 from monge_crawler.filter import filter_posts
+from monge_crawler.models import FetchError
 from monge_crawler.parser import parse_article_list, parse_article_body
 from monge_crawler.image_downloader import download_images
 
@@ -18,14 +19,13 @@ def fetch_posts(config, start: date, end: date, *, list_fn, article_fn,
         if not page_posts:
             break
         # 최신순 전제: 이 페이지 글이 전부 하한 이전이면 이후 페이지도 그러하므로 중단
-        if all(p.created_at < lo for p in page_posts if not p.is_notice):
+        non_notice = [p for p in page_posts if not p.is_notice]
+        if non_notice and all(p.created_at < lo for p in non_notice):
             break
         for p in filter_posts(page_posts, start, end):
             try:
                 p.body_text, p.image_urls = parse_article_body(article_fn(p.url))
             except Exception as exc:  # noqa: BLE001
-                from datetime import datetime
-                from monge_crawler.models import FetchError
                 errors.append(FetchError(p.post_id, p.url, "article", str(exc), datetime.now()))
                 continue
             paths, img_errors = download_images(p.image_urls, p.post_id, p.url,
