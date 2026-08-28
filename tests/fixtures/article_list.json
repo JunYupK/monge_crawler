@@ -1,0 +1,12 @@
+{
+  "message": {
+    "result": {
+      "articleList": [
+        {"articleId": 1001, "subject": "공지글", "writerNickname": "관리자",
+         "writeDateTimestamp": 1757602800000, "noticeYn": "Y"},
+        {"articleId": 1002, "subject": "일반글 A", "writerNickname": "홍길동",
+         "writeDateTimestamp": 1757689200000, "noticeYn": "N"}
+      ]
+    }
+  }
+}

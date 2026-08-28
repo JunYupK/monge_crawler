@@ -1,0 +1,7 @@
+# 대상 게시판 URL (개설 후 교체). 형식: https://cafe.naver.com/f-e/cafes/<cafeId>/menus/<menuId>
+board_url: "https://cafe.naver.com/f-e/cafes/30867744/menus/43"
+page_size: 15          # 목록 한 페이지 글 수
+request_delay_sec: 0.5 # 요청 간 딜레이(예의상 rate limit)
+output_dir: "output"
+log_dir: "logs"
+max_pages: 1000        # 목록 페이지네이션 안전 상한 (무한 루프 방지)
