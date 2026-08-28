@@ -87,6 +87,36 @@ def test_fetch_does_not_stop_at_all_notice_page(tmp_path):
     assert ids == ["2003"], f"Expected ['2003'] but got {ids}"
 
 
+def test_fetch_works_with_delay_absent(tmp_path):
+    """request_delay_sec omitted (defaults to 0) → happy path still works, no real sleeping."""
+    cfg = {"board_url": "https://cafe.naver.com/f-e/cafes/30867744/menus/43",
+           "page_size": 15}
+    posts, errors = fetch_posts(cfg, date(2025, 9, 12), date(2025, 9, 16),
+                                list_fn=_list_page, article_fn=_article,
+                                image_client=_Client(), out_dir=tmp_path)
+    ids = [p.post_id for p in posts]
+    assert ids == ["1002"]
+    assert errors == []
+
+
+def test_fetch_terminates_when_page_param_is_ignored(tmp_path):
+    """list_fn always returns the same in-period post regardless of page (page param
+    ignored by the endpoint). fetch_posts must not hang and must dedupe the result."""
+    def _static_page(page):
+        return {"message": {"result": {"articleList": [
+            {"articleId": 3001, "subject": "고정글", "writerNickname": "user",
+             "writeDateTimestamp": _ts(2025, 9, 13), "noticeYn": "N"},
+        ]}}}
+
+    cfg = {"board_url": "https://cafe.naver.com/f-e/cafes/30867744/menus/43",
+           "page_size": 15, "request_delay_sec": 0, "max_pages": 3}
+    posts, errors = fetch_posts(cfg, date(2025, 9, 12), date(2025, 9, 16),
+                                list_fn=_static_page, article_fn=_article,
+                                image_client=_Client(), out_dir=tmp_path)
+    ids = [p.post_id for p in posts]
+    assert ids == ["3001"]
+
+
 def test_fetch_handles_list_stage_failure(tmp_path):
     """list_fn raising should not crash fetch_posts; it should record a FetchError
     with stage=='list' and stop paging, returning whatever was collected so far."""

@@ -1,3 +1,4 @@
+import time
 from datetime import date, datetime
 from monge_crawler.dateutil import period_bounds
 from monge_crawler.filter import filter_posts
@@ -10,10 +11,15 @@ def fetch_posts(config, start: date, end: date, *, list_fn, article_fn,
                 image_client, out_dir):
     lo, _hi = period_bounds(start, end)
     board_url = config["board_url"]
+    delay = config.get("request_delay_sec", 0)
+    max_pages = config.get("max_pages", 1000)
     collected = []
     errors = []
+    seen_ids = set()
     page = 1
     while True:
+        if page > max_pages:
+            break
         try:
             data = list_fn(page)
             page_posts = parse_article_list(data, board_url)
@@ -26,6 +32,11 @@ def fetch_posts(config, start: date, end: date, *, list_fn, article_fn,
         non_notice = [p for p in page_posts if not p.is_notice]
         if non_notice and all(p.created_at < lo for p in non_notice):
             break
+        new_ids = {p.post_id for p in page_posts if p.post_id not in seen_ids}
+        if not new_ids:
+            # 페이지가 진행 없이 반복됨(page 파라미터 무시 등) → 무한 루프 방지
+            break
+        seen_ids |= new_ids
         for p in filter_posts(page_posts, start, end):
             try:
                 p.body_text, p.image_urls = parse_article_body(article_fn(p.url))
@@ -37,6 +48,10 @@ def fetch_posts(config, start: date, end: date, *, list_fn, article_fn,
             p.image_paths = paths
             errors.extend(img_errors)
             collected.append(p)
+            if delay:
+                time.sleep(delay)
         page += 1
+        if delay:
+            time.sleep(delay)
     # 페이지 경계를 넘나든 중복 대비 최종 dedupe
     return filter_posts(collected, start, end), errors

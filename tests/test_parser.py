@@ -20,6 +20,17 @@ def test_parse_list_extracts_meta_and_flags_notice():
     assert "30867744" in normal.url and "1002" in normal.url
 
 
+def test_parse_list_skips_malformed_row_without_raising():
+    data = {"message": {"result": {"articleList": [
+        {"articleId": 1002, "subject": "정상글", "writerNickname": "홍길동",
+         "writeDateTimestamp": 1757689200000, "noticeYn": "N"},
+        {"subject": "깨진글", "writerNickname": "누군가", "noticeYn": "N"},
+    ]}}}
+    posts = parse_article_list(data, BOARD)
+    assert len(posts) == 1
+    assert posts[0].post_id == "1002"
+
+
 def test_parse_body_text_and_images():
     html = (FIX / "article_body.html").read_text(encoding="utf-8")
     text, images = parse_article_body(html)

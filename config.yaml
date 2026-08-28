@@ -4,3 +4,4 @@ page_size: 15          # 목록 한 페이지 글 수
 request_delay_sec: 0.5 # 요청 간 딜레이(예의상 rate limit)
 output_dir: "output"
 log_dir: "logs"
+max_pages: 1000        # 목록 페이지네이션 안전 상한 (무한 루프 방지)

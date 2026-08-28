@@ -3,7 +3,7 @@ from monge_crawler.selftest import run_selftest
 
 class _Resp:
     status_code = 200
-    text = "<div><p>b</p></div>"
+    text = "<div><p>b</p><img src='https://cdn/img.jpg'></div>"
     content = b"x"
     def json(self):
         return {"message": {"result": {"articleList": [
@@ -18,3 +18,4 @@ def test_selftest_reports_stages():
     report = run_selftest(cfg, http_get=lambda url, headers=None: _Resp())
     assert report["list"]["ok"] is True
     assert report["article"]["ok"] is True
+    assert report["image"]["ok"] is True

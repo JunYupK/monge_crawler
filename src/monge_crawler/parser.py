@@ -17,9 +17,13 @@ def parse_article_list(data: dict, board_url: str) -> list[Post]:
     articles = data["message"]["result"]["articleList"]
     posts: list[Post] = []
     for a in articles:
-        ts = a["writeDateTimestamp"] / 1000
-        created = datetime.fromtimestamp(ts, tz=KST).replace(tzinfo=None)
-        pid = str(a["articleId"])
+        try:
+            pid = str(a["articleId"])
+            ts = a["writeDateTimestamp"] / 1000
+            created = datetime.fromtimestamp(ts, tz=KST).replace(tzinfo=None)
+        except Exception:  # noqa: BLE001
+            # 필수 키 누락/형식 오류인 행 하나 때문에 전체 크롤이 중단되지 않도록 건너뜀
+            continue
         posts.append(Post(
             post_id=pid,
             title=a.get("subject", ""),

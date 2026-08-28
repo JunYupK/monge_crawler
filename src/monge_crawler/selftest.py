@@ -30,4 +30,15 @@ def run_selftest(config, *, http_get) -> dict:
         report["article"] = {"ok": True, "text_len": len(text), "images": len(images)}
     except Exception as exc:  # noqa: BLE001
         report["article"] = {"ok": False, "error": str(exc)}
+        return report
+
+    if not images:
+        report["image"] = {"ok": True, "images": 0, "note": "no images in first article"}
+        return report
+    try:
+        ir = http_get(images[0], headers={"Referer": board})
+        ir.raise_for_status()
+        report["image"] = {"ok": True, "bytes": len(ir.content)}
+    except Exception as exc:  # noqa: BLE001
+        report["image"] = {"ok": False, "error": str(exc)}
     return report
